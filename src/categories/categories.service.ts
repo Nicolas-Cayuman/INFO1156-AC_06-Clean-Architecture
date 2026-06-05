@@ -1,11 +1,17 @@
-import { Injectable } from "@nestjs/common"
-import { PrismaService } from "@/shared/prisma.service"
+import { Inject, Injectable } from "@nestjs/common"
+import {
+    I_CATEGORY_REPOSITORY,
+    ICategoryRepository,
+} from "./categories.repository"
 
 @Injectable()
 export class CategoriesService {
-    constructor(private readonly prisma: PrismaService) {}
+    constructor(
+        @Inject(I_CATEGORY_REPOSITORY)
+        private readonly categoryRepository: ICategoryRepository,
+    ) {}
 
     findAll() {
-        return this.prisma.category.findMany({ orderBy: { name: "asc" } })
+        return this.categoryRepository.findAll()
     }
 }

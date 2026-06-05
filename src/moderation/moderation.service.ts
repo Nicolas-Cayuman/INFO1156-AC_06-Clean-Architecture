@@ -1,5 +1,8 @@
-import { Injectable, NotFoundException } from "@nestjs/common"
-import { PrismaService } from "@/shared/prisma.service"
+import { Inject, Injectable, NotFoundException } from "@nestjs/common"
+import {
+    I_PROHIBITED_WORD_REPOSITORY,
+    IProhibitedWordRepository,
+} from "./moderation.repository"
 
 export type ModerationResult = {
     approved: boolean
@@ -14,10 +17,13 @@ const buildFuzzyRegex = (word: string) => {
 
 @Injectable()
 export class ModerationService {
-    constructor(private readonly prisma: PrismaService) {}
+    constructor(
+        @Inject(I_PROHIBITED_WORD_REPOSITORY)
+        private readonly prohibitedWordRepository: IProhibitedWordRepository,
+    ) {}
 
     async moderate(text: string): Promise<ModerationResult> {
-        const words = await this.prisma.prohibitedWord.findMany()
+        const words = await this.prohibitedWordRepository.findAll()
 
         for (const pw of words) {
             const regex = buildFuzzyRegex(pw.word)
@@ -34,27 +40,20 @@ export class ModerationService {
     }
 
     findAll() {
-        return this.prisma.prohibitedWord.findMany({
-            orderBy: { createdAt: "desc" },
-        })
+        return this.prohibitedWordRepository.findAll()
     }
 
     create(word: string, category: string) {
-        return this.prisma.prohibitedWord.create({ data: { word, category } })
+        return this.prohibitedWordRepository.create(word, category)
     }
 
     async delete(id: string) {
-        try {
-            return await this.prisma.prohibitedWord.delete({ where: { id } })
-        } catch (err: unknown) {
-            if (
-                err instanceof Error &&
-                "code" in err &&
-                (err as { code: string }).code === "P2025"
-            ) {
-                throw new NotFoundException("Palabra prohibida no encontrada")
-            }
-            throw err
+        const deleted = await this.prohibitedWordRepository.delete(id)
+
+        if (!deleted) {
+            throw new NotFoundException("Palabra prohibida no encontrada")
         }
+
+        return deleted
     }
 }
