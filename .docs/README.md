@@ -9,11 +9,11 @@ Este documento detalla las falencias arquitectónicas actuales identificadas en 
 Actualmente, el proyecto está estructurado bajo una arquitectura clásica por capas de NestJS (Controladores -> Servicios -> Base de Datos con Prisma), lo que genera varias deficiencias desde el punto de vista de diseño de software:
 
 ### A. Acoplamiento directo al Framework (NestJS) y al ORM (Prisma)
-* **Descripción:** Los servicios (por ejemplo, [posts.service.ts](file:///home/yoelpixula/Uni/Dise%C3%B1o_Software/Actividadddd/INFO1156-AC_06-Clean-Architecture/src/posts/posts.service.ts)) importan e inyectan directamente el `PrismaService` y manejan la base de datos a través de consultas nativas de Prisma (`this.prisma.post.create(...)`). 
+* **Descripción:** Los servicios (por ejemplo, [posts.service.ts](INFO1156-AC_06-Clean-Architecture/src/posts/posts.service.ts)) importan e inyectan directamente el `PrismaService` y manejan la base de datos a través de consultas nativas de Prisma (`this.prisma.post.create(...)`). 
 * **Impacto:** Si se decide cambiar el ORM (por ejemplo, a TypeORM o Mongoose) o el motor de persistencia, toda la lógica de negocio contenida en los servicios deberá ser reescrita. No hay separación entre el negocio y la infraestructura de almacenamiento.
 
 ### B. Mezcla de Excepciones del Framework con Lógica de Negocio
-* **Descripción:** En la capa de servicios ([comments.service.ts](file:///home/yoelpixula/Uni/Dise%C3%B1o_Software/Actividadddd/INFO1156-AC_06-Clean-Architecture/src/comments/comments.service.ts)), se lanzan directamente excepciones HTTP nativas de NestJS como `BadRequestException` o `NotFoundException`.
+* **Descripción:** En la capa de servicios ([comments.service.ts](INFO1156-AC_06-Clean-Architecture/src/comments/comments.service.ts)), se lanzan directamente excepciones HTTP nativas de NestJS como `BadRequestException` o `NotFoundException`.
 * **Impacto:** Las reglas de negocio quedan ligadas al protocolo HTTP. Si esta lógica se consumiera mediante una interfaz de CLI, WebSockets o colas de mensería (RabbitMQ), el código lanzaría excepciones de respuesta web que no corresponden a dichos contextos.
 
 ### C. Ausencia de Entidades del Dominio (Modelo Anémico)
@@ -21,7 +21,7 @@ Actualmente, el proyecto está estructurado bajo una arquitectura clásica por c
 * **Impacto:** Los datos viajan como objetos planos estructurados y la lógica sobre ellos (por ejemplo, calcular el `relevanceScore` o moderar un texto) se dispersa en servicios de NestJS en vez de estar autocontenida en la entidad de dominio correspondiente.
 
 ### D. Violación de Responsabilidades en el Controlador (Orquestación del Feed)
-* **Descripción:** En [posts.controller.ts](file:///home/yoelpixula/Uni/Dise%C3%B1o_Software/Actividadddd/INFO1156-AC_06-Clean-Architecture/src/posts/posts.controller.ts#L34-L47), el controlador no solo recibe la petición HTTP, sino que además ejecuta lógica de negocio al instanciar la estrategia de ordenamiento del feed:
+* **Descripción:** En [posts.controller.ts](INFO1156-AC_06-Clean-Architecture/src/posts/posts.controller.ts#L34-L47), el controlador no solo recibe la petición HTTP, sino que además ejecuta lógica de negocio al instanciar la estrategia de ordenamiento del feed:
   ```typescript
   const feedPosts = await this.postsService.getFeedPosts(query.categoryId)
   const rankedPosts = this.feedRankingFactory
@@ -54,7 +54,7 @@ Para resolver estas falencias, se propone aplicar los siguientes patrones de dis
    * `ILikeRepository` para registrar reacciones.
    * `IModerationService` para las validaciones de palabras prohibidas.
 3. **Mapeo de Entidades:** Crear una entidad de dominio pura `Post` y `Comment` que no dependan del esquema directo del ORM, aislando los tipos generados de Prisma en la capa de persistencia.
-4. **Trasladar Orquestación del Feed:** Crear un caso de uso específico para retornar el feed ordenado, quitándole la responsabilidad de ordenamiento al [posts.controller.ts](file:///home/yoelpixula/Uni/Diseño_Software/Actividadddd/INFO1156-AC_06-Clean-Architecture/src/posts/posts.controller.ts).
+4. **Trasladar Orquestación del Feed:** Crear un caso de uso específico para retornar el feed ordenado, quitándole la responsabilidad de ordenamiento al [posts.controller.ts](INFO1156-AC_06-Clean-Architecture/src/posts/posts.controller.ts).
 
 ---
 
