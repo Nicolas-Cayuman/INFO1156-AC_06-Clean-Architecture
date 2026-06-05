@@ -30,6 +30,10 @@ Actualmente, el proyecto está estructurado bajo una arquitectura clásica por c
   ```
 * **Impacto:** La orquestación y flujo del negocio (cómo se obtienen y ordenan los posts) debería vivir en la lógica de aplicación (un caso de uso), no en la capa HTTP.
 
+### E. Acoplamiento entre Módulos (Dependencias Circulares Encubiertas)
+* **Descripción:** Servicios de distintos dominios dependen entre sí para operaciones simples. Por ejemplo, `LikesService` inyecta directamente `PostsService` solo para validar si un post existe.
+* **Impacto:** Rompe los límites de los módulos y genera un alto grado de dependencia temporal e instanciación mutua. La comunicación cruzada debería darse a través de inyección de repositorios/puertos comunes, o mediante eventos de dominio.
+
 ---
 
 ## 2. Patrones Arquitectónicos Aplicables y Justificación
@@ -53,8 +57,10 @@ Para resolver estas falencias, se propone aplicar los siguientes patrones de dis
    * `ICommentRepository` para gestionar comentarios.
    * `ILikeRepository` para registrar reacciones.
    * `IModerationService` para las validaciones de palabras prohibidas.
-3. **Mapeo de Entidades:** Crear una entidad de dominio pura `Post` y `Comment` que no dependan del esquema directo del ORM, aislando los tipos generados de Prisma en la capa de persistencia.
-4. **Trasladar Orquestación del Feed:** Crear un caso de uso específico para retornar el feed ordenado, quitándole la responsabilidad de ordenamiento al [posts.controller.ts](INFO1156-AC_06-Clean-Architecture/src/posts/posts.controller.ts).
+3. **Mapeo de Entidades (Mappers):** Crear entidades de dominio puras `Post` y `Comment`. Para evitar acoplar estas entidades a la base de datos, se deben crear **Mappers** específicos en la capa de infraestructura encargados de traducir entre los modelos generados por Prisma y las entidades del dominio.
+4. **Manejo de Excepciones de Dominio:** Reemplazar las excepciones HTTP (`BadRequestException`) en el dominio por errores puros (ej. `PostNotFoundError`). Utilizar **Exception Filters** de NestJS en la capa de presentación (Infraestructura) para capturar estos errores puros y traducirlos a códigos HTTP correspondientes.
+5. **Inyección de Dependencias mediante Tokens:** Puesto que TypeScript no retiene las interfaces en tiempo de ejecución, para inyectar los puertos en los Casos de Uso dentro del marco de NestJS se usarán tokens de inyección (ej. `@Inject('IPostRepository')`) enlazados a sus adaptadores (ej. `PrismaPostRepository`) a través del registro de Providers en los módulos.
+6. **Trasladar Orquestación del Feed:** Crear un caso de uso específico para retornar el feed ordenado, quitándole la responsabilidad de ordenamiento al [posts.controller.ts](INFO1156-AC_06-Clean-Architecture/src/posts/posts.controller.ts).
 
 ---
 
@@ -92,6 +98,48 @@ graph TD
     UC_Create --> PostEnt
     PrismaRepo -- Implements --> IPostRepo
     PrismaRepo --> PrismaClient
+```
+
+### Diagrama de Clases (Inversión de Dependencias)
+
+El siguiente diagrama ilustra cómo se solucionan los problemas de acoplamiento. El Caso de Uso (Aplicación) y la Entidad (Dominio) conforman el núcleo puro, mientras que el Controlador y el Repositorio de Prisma (Infraestructura) dependen de ellos desde el exterior, cumpliendo con la Inversión de Dependencias (DIP).
+
+```mermaid
+classDiagram
+    class PostController {
+        +getFeed(req)
+    }
+    
+    class GetRankedFeedUseCase {
+        -IPostRepository postRepository
+        +execute(mode, categoryId) Post[]
+    }
+    
+    class IPostRepository {
+        <<interface>>
+        +getFeedPosts(categoryId) Post[]
+        +create(post) Post
+    }
+    
+    class Post {
+        +String id
+        +String title
+        +Number likesCount
+        +Number commentsCount
+    }
+    
+    class PrismaPostRepository {
+        -PrismaService prisma
+        +getFeedPosts(categoryId) Post[]
+        +create(post) Post
+    }
+
+    PostController --> GetRankedFeedUseCase : Invoca
+    GetRankedFeedUseCase --> IPostRepository : Inyecta
+    GetRankedFeedUseCase --> Post : Retorna
+    IPostRepository ..> Post : Depende
+    PrismaPostRepository ..|> IPostRepository : Implementa (Adaptador)
+    PrismaPostRepository --> Post : Mapea a
 ```
 
 ### Nueva Estructura de Directorios Propuesta
