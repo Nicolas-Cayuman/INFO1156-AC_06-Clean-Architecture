@@ -1,11 +1,10 @@
-import {
-    BadRequestException,
-    Inject,
-    Injectable,
-    NotFoundException,
-} from "@nestjs/common"
+import { Inject, Injectable } from "@nestjs/common"
 import { AddLikeDto } from "@/posts/posts.dtos"
 import { PostsService } from "@/posts/posts.service"
+import {
+    BusinessRuleViolationError,
+    ResourceNotFoundError,
+} from "@/shared/domain-errors"
 import { I_LIKE_REPOSITORY, ILikeRepository } from "./likes.repository"
 
 @Injectable()
@@ -22,7 +21,7 @@ export class LikesService {
         const weight = data.weight ?? 1
 
         if (weight < 1) {
-            throw new BadRequestException("El peso debe ser al menos 1")
+            throw new BusinessRuleViolationError("El peso debe ser al menos 1")
         }
 
         return this.likeRepository.create({
@@ -37,7 +36,7 @@ export class LikesService {
         const post = await this.postsService.findById(postId)
 
         if (!post) {
-            throw new NotFoundException("Post no encontrado")
+            throw new ResourceNotFoundError("Post no encontrado")
         }
     }
 }

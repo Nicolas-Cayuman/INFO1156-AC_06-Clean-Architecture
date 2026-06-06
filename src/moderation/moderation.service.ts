@@ -1,4 +1,5 @@
-import { Inject, Injectable, NotFoundException } from "@nestjs/common"
+import { Inject, Injectable } from "@nestjs/common"
+import { ResourceNotFoundError } from "@/shared/domain-errors"
 import {
     I_PROHIBITED_WORD_REPOSITORY,
     IProhibitedWordRepository,
@@ -51,7 +52,7 @@ export class ModerationService {
         const deleted = await this.prohibitedWordRepository.delete(id)
 
         if (!deleted) {
-            throw new NotFoundException("Palabra prohibida no encontrada")
+            throw new ResourceNotFoundError("Palabra prohibida no encontrada")
         }
 
         return deleted

@@ -1,12 +1,11 @@
-import {
-    BadRequestException,
-    Inject,
-    Injectable,
-    NotFoundException,
-} from "@nestjs/common"
+import { Inject, Injectable } from "@nestjs/common"
 import { CreateCommentDto } from "@/posts/posts.dtos"
 import { ModerationService } from "@/moderation/moderation.service"
 import { PostsService } from "@/posts/posts.service"
+import {
+    BusinessRuleViolationError,
+    ResourceNotFoundError,
+} from "@/shared/domain-errors"
 import { I_COMMENT_REPOSITORY, ICommentRepository } from "./comments.repository"
 
 @Injectable()
@@ -34,7 +33,7 @@ export class CommentsService {
 
         const moderation = await this.moderationService.moderate(data.content)
         if (!moderation.approved) {
-            throw new BadRequestException(
+            throw new BusinessRuleViolationError(
                 moderation.reason ?? "Comentario bloqueado por moderación",
             )
         }
@@ -49,7 +48,7 @@ export class CommentsService {
     private async assertPostExists(postId: string) {
         const post = await this.postsService.findById(postId)
         if (!post) {
-            throw new NotFoundException("Post no encontrado")
+            throw new ResourceNotFoundError("Post no encontrado")
         }
     }
 }
