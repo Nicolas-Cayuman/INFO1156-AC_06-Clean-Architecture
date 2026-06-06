@@ -5,6 +5,7 @@ import { PostsController } from "@/posts/posts.controller"
 import { PostsService } from "@/posts/posts.service"
 import { PrismaPostsRepository } from "./prisma-posts.repository"
 import { I_POST_REPOSITORY } from "./posts.repository"
+import { GetRankedFeedUseCase } from "./get-ranked-feed.use-case"
 
 @Module({
     imports: [ModerationModule],
@@ -12,11 +13,12 @@ import { I_POST_REPOSITORY } from "./posts.repository"
     providers: [
         PostsService,
         FeedRankingStrategyFactory,
+        GetRankedFeedUseCase,
         {
             provide: I_POST_REPOSITORY,
             useClass: PrismaPostsRepository,
         },
     ],
-    exports: [PostsService],
+    exports: [PostsService, I_POST_REPOSITORY],
 })
 export class PostsModule {}

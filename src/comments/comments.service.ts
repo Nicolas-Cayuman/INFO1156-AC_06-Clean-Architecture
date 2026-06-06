@@ -1,7 +1,7 @@
 import { Inject, Injectable } from "@nestjs/common"
 import { CreateCommentDto } from "@/posts/posts.dtos"
 import { ModerationService } from "@/moderation/moderation.service"
-import { PostsService } from "@/posts/posts.service"
+import { I_POST_REPOSITORY, IPostRepository } from "@/posts/posts.repository"
 import {
     BusinessRuleViolationError,
     ResourceNotFoundError,
@@ -13,7 +13,8 @@ export class CommentsService {
     constructor(
         @Inject(I_COMMENT_REPOSITORY)
         private readonly commentRepository: ICommentRepository,
-        private readonly postsService: PostsService,
+        @Inject(I_POST_REPOSITORY)
+        private readonly postRepository: IPostRepository,
         private readonly moderationService: ModerationService,
     ) {}
 
@@ -46,7 +47,7 @@ export class CommentsService {
     }
 
     private async assertPostExists(postId: string) {
-        const post = await this.postsService.findById(postId)
+        const post = await this.postRepository.findById(postId)
         if (!post) {
             throw new ResourceNotFoundError("Post no encontrado")
         }

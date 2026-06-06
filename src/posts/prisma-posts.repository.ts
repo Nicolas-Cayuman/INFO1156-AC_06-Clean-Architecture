@@ -10,20 +10,20 @@ export class PrismaPostsRepository implements IPostRepository {
 
     async create(data: CreatePostDto): Promise<Post> {
         const created = await this.prisma.post.create({ data })
-        return new Post(created)
+        return Post.fromDatabase(created)
     }
 
     async findAll(): Promise<Post[]> {
         const posts = await this.prisma.post.findMany({
             orderBy: { createdAt: "desc" },
         })
-        return posts.map((p) => new Post(p))
+        return posts.map(Post.fromDatabase)
     }
 
     async findById(id: string): Promise<Post | null> {
         const post = await this.prisma.post.findUnique({ where: { id } })
         if (!post) return null
-        return new Post(post)
+        return Post.fromDatabase(post)
     }
 
     async getFeedPosts(categoryId?: string): Promise<FeedPost[]> {
@@ -32,18 +32,6 @@ export class PrismaPostsRepository implements IPostRepository {
             include: { comments: true, likes: true, category: true },
         })
 
-        return posts.map(
-            (post) =>
-                new Post({
-                    ...post,
-                    categoryName: post.category?.name ?? null,
-                    likesCount: post.likes.reduce(
-                        (sum, l) => sum + l.weight,
-                        0,
-                    ),
-                    commentsCount: post.comments.length,
-                    relevanceScore: 0,
-                }) as FeedPost,
-        )
+        return posts.map(FeedPost.fromDatabase)
     }
 }

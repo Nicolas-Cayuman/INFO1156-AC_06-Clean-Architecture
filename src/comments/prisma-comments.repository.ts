@@ -12,13 +12,13 @@ export class PrismaCommentsRepository implements ICommentRepository {
             where: { postId },
             orderBy: { createdAt: "desc" },
         })
-        return comments.map((c) => new Comment(c))
+        return comments.map(Comment.fromDatabase)
     }
 
     async create(data: CreateCommentData): Promise<Comment> {
         const comment = await this.prisma.comment.create({
             data,
         })
-        return new Comment(comment)
+        return Comment.fromDatabase(comment)
     }
 }
