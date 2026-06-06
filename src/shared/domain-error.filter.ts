@@ -47,7 +47,7 @@ export class DomainErrorFilter implements ExceptionFilter {
 
     private getStatus(exception: DomainError): HttpStatus {
         // Usar el statusCode de la excepción si está disponible
-        if ("statusCode" in exception) {
+        if (exception.statusCode) {
             return exception.statusCode
         }
 
