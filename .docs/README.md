@@ -10,7 +10,7 @@ Actualmente, el proyecto está estructurado bajo una arquitectura clásica por c
 
 ### A. Acoplamiento directo al Framework (NestJS) y al ORM (Prisma)
 * **Descripción:** Los servicios (por ejemplo, [posts.service.ts](INFO1156-AC_06-Clean-Architecture/src/posts/posts.service.ts)) importan e inyectan directamente el `PrismaService` y manejan la base de datos a través de consultas nativas de Prisma (`this.prisma.post.create(...)`). 
-* **Impacto:** Si se decide cambiar el ORM (por ejemplo, a TypeORM o Mongoose) o el motor de persistencia, toda la lógica de negocio contenida en los servicios deberá ser reescrita. No hay separación entre el negocio y la infraestructura de almacenamiento.
+* **Impacto:** Si se decide cambiar el ORM (por ejemplo, a TypeORM o Mongoose) o el motor de persistencia, toda la lógica de negocio contenida en los servicios deberá ser reescrita. No hay separación entre el negocio y la infraestructura de almacenamiento. (listo)
 
 ### B. Mezcla de Excepciones del Framework con Lógica de Negocio
 * **Descripción:** En la capa de servicios ([comments.service.ts](INFO1156-AC_06-Clean-Architecture/src/comments/comments.service.ts)), se lanzan directamente excepciones HTTP nativas de NestJS como `BadRequestException` o `NotFoundException`.

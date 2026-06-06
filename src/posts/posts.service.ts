@@ -1,6 +1,7 @@
-import { BadRequestException, Inject, Injectable } from "@nestjs/common"
+import { Inject, Injectable } from "@nestjs/common"
 import { CreatePostDto } from "@/posts/posts.dtos"
 import { ModerationService } from "@/moderation/moderation.service"
+import { BusinessRuleViolationError } from "@/shared/domain-errors"
 import { I_POST_REPOSITORY, IPostRepository } from "./posts.repository"
 
 @Injectable()
@@ -16,7 +17,7 @@ export class PostsService {
         const moderation = await this.moderationService.moderate(text)
 
         if (!moderation.approved) {
-            throw new BadRequestException(
+            throw new BusinessRuleViolationError(
                 moderation.reason ?? "Post bloqueado por moderación",
             )
         }
