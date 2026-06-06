@@ -1,22 +1,19 @@
-import { Inject, Injectable } from "@nestjs/common"
-import { AddLikeDto } from "@/posts/posts.dtos"
-import { I_POST_REPOSITORY, IPostRepository } from "@/posts/posts.repository"
+import { AddLikeDto } from "@/application/dtos/post.dtos"
+import { Like } from "@/likes/like.entity"
+import { ILikeRepository } from "@/likes/likes.repository"
+import { IPostRepository } from "@/posts/posts.repository"
 import {
     BusinessRuleViolationError,
     ResourceNotFoundError,
 } from "@/shared/domain-errors"
-import { I_LIKE_REPOSITORY, ILikeRepository } from "./likes.repository"
 
-@Injectable()
-export class LikesService {
+export class AddLikeUseCase {
     constructor(
-        @Inject(I_LIKE_REPOSITORY)
         private readonly likeRepository: ILikeRepository,
-        @Inject(I_POST_REPOSITORY)
         private readonly postRepository: IPostRepository,
     ) {}
 
-    async create(postId: string, data: AddLikeDto) {
+    async execute(postId: string, data: AddLikeDto): Promise<Like> {
         await this.assertPostExists(postId)
 
         const weight = data.weight ?? 1

@@ -1,5 +1,5 @@
 import { FeedPost, Post } from "./post.entity"
-import { CreatePostDto } from "./posts.dtos"
+import { CreatePostDto } from "@/application/dtos/post.dtos"
 
 export const I_POST_REPOSITORY = Symbol("IPostRepository")
 

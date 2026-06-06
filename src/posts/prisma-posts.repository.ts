@@ -2,7 +2,7 @@ import { Injectable } from "@nestjs/common"
 import { PrismaService } from "@/shared/prisma.service"
 import { IPostRepository } from "./posts.repository"
 import { FeedPost, Post } from "./post.entity"
-import { CreatePostDto } from "./posts.dtos"
+import { CreatePostDto } from "@/application/dtos/post.dtos"
 
 @Injectable()
 export class PrismaPostsRepository implements IPostRepository {

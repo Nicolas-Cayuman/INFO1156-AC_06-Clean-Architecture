@@ -1,35 +1,21 @@
-import { Inject, Injectable } from "@nestjs/common"
-import { CreateCommentDto } from "@/posts/posts.dtos"
 import { ModerationService } from "@/moderation/moderation.service"
-import { I_POST_REPOSITORY, IPostRepository } from "@/posts/posts.repository"
+import { CreateCommentDto } from "@/application/dtos/post.dtos"
+import { ICommentRepository } from "@/comments/comments.repository"
+import { IPostRepository } from "@/posts/posts.repository"
 import {
     BusinessRuleViolationError,
     ResourceNotFoundError,
 } from "@/shared/domain-errors"
-import { I_COMMENT_REPOSITORY, ICommentRepository } from "./comments.repository"
+import { Comment } from "@/comments/comment.entity"
 
-@Injectable()
-export class CommentsService {
+export class AddCommentUseCase {
     constructor(
-        @Inject(I_COMMENT_REPOSITORY)
         private readonly commentRepository: ICommentRepository,
-        @Inject(I_POST_REPOSITORY)
         private readonly postRepository: IPostRepository,
         private readonly moderationService: ModerationService,
     ) {}
 
-    async listByPostId(postId: string) {
-        await this.assertPostExists(postId)
-
-        const comments = await this.commentRepository.listByPostId(postId)
-
-        return {
-            total_comments: comments.length,
-            comments,
-        }
-    }
-
-    async create(postId: string, data: CreateCommentDto) {
+    async execute(postId: string, data: CreateCommentDto): Promise<Comment> {
         await this.assertPostExists(postId)
 
         const moderation = await this.moderationService.moderate(data.content)

@@ -1,7 +1,7 @@
 import { Inject, Injectable } from "@nestjs/common"
-import { I_POST_REPOSITORY, IPostRepository } from "./posts.repository"
-import { FeedRankingStrategyFactory } from "./feed-ranking.strategy"
-import { FeedPost } from "./post.entity"
+import { I_POST_REPOSITORY, IPostRepository } from "@/posts/posts.repository"
+import { FeedRankingStrategyFactory } from "@/posts/feed-ranking.strategy"
+import { FeedPost } from "@/posts/post.entity"
 
 @Injectable()
 export class GetRankedFeedUseCase {

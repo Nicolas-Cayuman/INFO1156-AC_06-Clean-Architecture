@@ -1,19 +1,21 @@
 import { Body, Controller, Get, Post, Query } from "@nestjs/common"
 
-import { PostsService } from "@/posts/posts.service"
-import { GetRankedFeedUseCase } from "@/posts/get-ranked-feed.use-case"
-import { CreatePostDto, FeedQueryDto } from "@/posts/posts.dtos"
+import { CreatePostDto, FeedQueryDto } from "@/application/dtos/post.dtos"
+import { CreatePostUseCase } from "@/application/use-cases/create-post.use-case"
+import { GetAllPostsUseCase } from "@/application/use-cases/get-all-posts.use-case"
+import { GetRankedFeedUseCase } from "@/application/use-cases/get-ranked-feed.use-case"
 
 @Controller("api/posts")
 export class PostsController {
     constructor(
-        private readonly postsService: PostsService,
+        private readonly createPostUseCase: CreatePostUseCase,
+        private readonly getAllPostsUseCase: GetAllPostsUseCase,
         private readonly getRankedFeedUseCase: GetRankedFeedUseCase,
     ) {}
 
     @Post()
     async create(@Body() body: CreatePostDto) {
-        const created = await this.postsService.create(body)
+        const created = await this.createPostUseCase.execute(body)
 
         return {
             ok: true,
@@ -23,7 +25,7 @@ export class PostsController {
 
     @Get()
     async findAll() {
-        const posts = await this.postsService.findAll()
+        const posts = await this.getAllPostsUseCase.execute()
 
         return {
             total: posts.length,
