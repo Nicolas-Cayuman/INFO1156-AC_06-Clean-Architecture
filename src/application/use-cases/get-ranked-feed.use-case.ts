@@ -11,9 +11,10 @@ export class GetRankedFeedUseCase {
         private readonly rankingFactory: FeedRankingStrategyFactory,
     ) {}
 
-    async execute(mode: string, categoryId?: string): Promise<FeedPost[]> {
+    async execute(mode?: string, categoryId?: string): Promise<FeedPost[]> {
+        const feedMode = mode ?? "latest"
         const feedPosts = await this.postRepository.getFeedPosts(categoryId)
-        const strategy = this.rankingFactory.forMode(mode)
+        const strategy = this.rankingFactory.forMode(feedMode)
         return strategy.rank(feedPosts)
     }
 }

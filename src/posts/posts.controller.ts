@@ -35,15 +35,13 @@ export class PostsController {
 
     @Get("feed")
     async getFeed(@Query() query: FeedQueryDto) {
-        const mode = query.mode ?? "latest"
-        
         const rankedPosts = await this.getRankedFeedUseCase.execute(
-            mode,
+            query.mode,
             query.categoryId,
         )
 
         return {
-            mode,
+            mode: query.mode ?? "latest",
             count: rankedPosts.length,
             rows: rankedPosts,
         }
